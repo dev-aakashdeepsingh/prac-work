@@ -486,7 +486,10 @@ std::pair<RegXS, RegBS> MinHeap::restore_heap_property_optimized(MPCTIO &tio, yi
     return {smallerindex, gteq};
 }
 
-
+void MinHeap::test(MPCTIO &tio, yield_t & yield) {
+    auto HeapArray = oram.flat(tio, yield);
+    std::cout<< HeapArray[0];
+}
 // Intializes the heap array with 0x7fffffffffffffff
 void MinHeap::init(MPCTIO &tio, yield_t & yield) {
     auto HeapArray = oram.flat(tio, yield);
@@ -494,9 +497,15 @@ void MinHeap::init(MPCTIO &tio, yield_t & yield) {
     num_items = 0;
 }
 
+void MinHeap::init2(MPCTIO &tio, yield_t & yield) {
+    auto HeapArray = oram.flat(tio, yield);
+    HeapArray.init(0x7fffffffffffffff);
+    num_items = 0;
+}
+
 
 // This function simply inits a heap with values 100,200,...,100*n
-// We use this function only to set up our heap
+// We us0x7fffffffffffffffe this function only to set up our heap
 // to do timing experiments on insert and extractmins
 void MinHeap::init(MPCTIO &tio, yield_t & yield, size_t n) {
     auto HeapArray = oram.flat(tio, yield);
@@ -505,6 +514,20 @@ void MinHeap::init(MPCTIO &tio, yield_t & yield, size_t n) {
     HeapArray.init([n](size_t i) {
         if (i >= 1 && i <= n) {
             return i*100;
+        } else {
+            return size_t(0x7fffffffffffffff);
+        }
+    });
+}
+
+// technically not needed for now, not deleting, may use later
+void MinHeap::init2(MPCTIO &tio, yield_t & yield, size_t n) {
+    auto HeapArray = oram.flat(tio, yield);
+
+    num_items = n;
+    HeapArray.init([n](size_t i) {
+        if (i >= 1 && i <= n) {
+            return size_t(0x7fffffffffffffff);
         } else {
             return size_t(0x7fffffffffffffff);
         }
@@ -673,30 +696,25 @@ RegAS MinHeap::extract_min(MPCTIO &tio, yield_t & yield, int is_optimized) {
     auto outroot = restore_heap_property_at_explicit_index(tio, yield);
     RegXS smaller = outroot.first;
 
-    if(is_optimized > 0) {
-        typename Duoram < RegAS > ::template OblivIndex < RegXS, 3 > oidx(tio, yield, height);
-        oidx.incr(outroot.second);
-
-        for (size_t i = 0; i < height-1; ++i) {
-            auto out = restore_heap_property_optimized(tio, yield, smaller, i + 1,  oidx);
-            smaller = out.first;
-            oidx.incr(out.second);
-        }
-    }
-
-    if(is_optimized == 0) {
-        for (size_t i = 0; i < height - 1; ++i) {
-            smaller = restore_heap_property(tio, yield, smaller);
-        }
-    }
-
     return minval;
 }
 
+bool MinHeap::containsvalue( MPCTIO &tio, yield_t & yield) {
+    if(num_items > 0)
+        return true;
+    return false;
+}
+
+void MinHeap::changevalF(MPCTIO &tio, yield_t & yield, RegAS index) {
+    auto HeapArray = oram.flat(tio, yield);
+
+    RegAS tofalse;
+    tofalse.set(0);
+    HeapArray[index] = tofalse;
+}
 
 
 void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
-
 
     MPCTIO tio(mpcio, 0, opts.num_cpu_threads);
 
@@ -732,71 +750,84 @@ void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
 
     run_coroutines(tio, [ & tio, maxdepth, heapdepth, n_inserts, n_extracts, is_optimized, run_sanity, &mpcio](yield_t & yield) {
         size_t size = size_t(1) << maxdepth;
+
+        // Implementation started here, ignore all the above arguments, not worrying 
+        // about arguments for now!       
+        // created 2 heaps original as tree and original bool as tree_bool
         MinHeap tree(tio.player(), size);
-        // This form of init with a third parameter of n sets the heap
-        // to contain 100, 200, 300, ..., 100*n.
-        tree.init(tio, yield, (size_t(1) << heapdepth) - 1);
-        std::cout << "\n===== Init Stats =====\n";
+        MinHeap tree_bool(tio.player(), size);
+
+        // cache heap with size as 0 initially
+        MinHeap cache(tio.player(), 0);
+
+        // initializing the 2 original heaps, one with random values, and another with all true
+        // since bool is not defined as a type in RegAS oram() hence any value other than 
+        // zero is considered as true.
+        tree.init(tio, yield, 7);
+        tree_bool.init(tio, yield, 7);
+        
+        // cache initially empty.
+        cache.init(tio, yield, 0);
+
+
+        std::cout << "===== Init Stats =====";
         tio.sync_lamport();
         mpcio.dump_stats(std::cout);
         mpcio.reset_stats();
         tio.reset_lamport();
-        for (size_t j = 0; j < n_inserts; ++j) {
 
-            RegAS inserted_val;
-            inserted_val.randomize(8);
-
-            #ifdef HEAP_VERBOSE
-            inserted_val.ashare = inserted_val.ashare;
-            uint64_t inserted_val_rec = mpc_reconstruct(tio, yield, inserted_val);
-            std::cout << "inserted_val_rec = " << inserted_val_rec << std::endl << std::endl;
-            #endif
-
-            if(is_optimized > 0)  tree.insert_optimized(tio, yield, inserted_val);
-            if(is_optimized == 0) tree.insert(tio, yield, inserted_val);
-        }
-
-        std::cout << "\n===== Insert Stats =====\n";
-        tio.sync_lamport();
-        mpcio.dump_stats(std::cout);
-
-
-        if(run_sanity == 1 && n_inserts != 0) tree.verify_heap_property(tio, yield);
-
-
-        mpcio.reset_stats();
-        tio.reset_lamport();
-
-        #ifdef HEAP_VERBOSE
-        tree.print_heap(tio, yield);
-        #endif
-
-        bool have_lastextract = false;
-        uint64_t lastextract = 0;
-
+        //extraction process
         for (size_t j = 0; j < n_extracts; ++j) {
-
-            if(run_sanity == 1) {
-                RegAS minval = tree.extract_min(tio, yield, is_optimized);
-                uint64_t minval_reconstruction = mpc_reconstruct(tio, yield, minval);
-                std::cout << "minval_reconstruction = " << minval_reconstruction << std::endl;
-                if (have_lastextract) {
-                    assert(minval_reconstruction >= lastextract);
-                }
-                lastextract = minval_reconstruction;
-                have_lastextract = true;
-            } else {
-                tree.extract_min(tio, yield, is_optimized);
+            
+            if (cache.containsvalue(tio, yield) == false && tree.containsvalue(tio, yield)) {
+                // getting the value out
+                RegAS toextract = tree.extract_min(tio, yield, is_optimized);
+                tree_bool.changevalF(tio, yield, toextract);
+                
             }
-
-            if (run_sanity == 1) {
-                tree.verify_heap_property(tio, yield);
-            }
-
+            RegAS minval = tree.extract_min(tio, yield, is_optimized);
+            uint64_t minval_reconstruction = mpc_reconstruct(tio, yield, minval);
+            std::cout << "minval_reconstruction = " << minval_reconstruction << std::endl;
+            //tree.extract_min(tio, yield, is_optimized);
+           
             #ifdef HEAP_VERBOSE
             tree.print_heap(tio, yield);
             #endif
-       }
+        }
+
+        // }else {
+        //     tree.extract_min(tio, yield, is_optimized);
+        // }
+        //
+        // if (run_sanity == 1) {
+        //     tree.verify_heap_property(tio, yield);
+        // }
+
+       
+
+        // for (size_t j = 0; j < n_extracts; ++j) {
+        //
+        //     if(run_sanity == 1) {
+        //         RegAS minval = tree.extract_min(tio, yield, is_optimized);
+        //         uint64_t minval_reconstruction = mpc_reconstruct(tio, yield, minval);
+        //         std::cout << "minval_reconstruction = " << minval_reconstruction << std::endl;
+        //         if (have_lastextract) {
+        //             assert(minval_reconstruction >= lastextract);
+        //         }
+        //         lastextract = minval_reconstruction;
+        //         have_lastextract = true;
+        //     } else {
+        //         tree.extract_min(tio, yield, is_optimized);
+        //     }
+        //
+        //     if (run_sanity == 1) {
+        //         tree.verify_heap_property(tio, yield);
+        //     }
+        //
+        //     #ifdef HEAP_VERBOSE
+        //     tree.print_heap(tio, yield);
+        //     #endif
+        //}
 
        std::cout << "\n===== Extract Min Stats =====\n";
        tio.sync_lamport();

@@ -42,15 +42,21 @@ public:
     // and takes in a boolean parameter to decide if the basic or the optimized version needs to be run
     // return value is the share of the minimum value (the root)
     RegAS extract_min(MPCTIO &tio, yield_t & yield, int is_optimized = 1);
+    
+void changevalF(MPCTIO &tio, yield_t & yield, RegAS index);
+bool containsvalue( MPCTIO &tio, yield_t & yield);
 
+
+    void test(MPCTIO &tio, yield_t & yield) ;
     // Intializes the heap array with 0x7fffffffffffffff
     void init(MPCTIO &tio, yield_t & yield);
+    void init2(MPCTIO &tio, yield_t & yield);
 
     // This function simply inits a heap with values 100,200,...,100*n
     // We use this function only to set up our heap
     // to do timing experiments on insert and extractmins
     void init(MPCTIO &tio, yield_t & yield, size_t n);
-
+    void init2(MPCTIO &tio, yield_t & yield, size_t n);
     // The Basic Insert Protocol
     // Takes in the additive share of the value to be inserted
     // And adds the the value into the heap while keeping the heap property intact

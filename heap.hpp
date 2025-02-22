@@ -45,7 +45,9 @@ public:
     
 void changevalF(MPCTIO &tio, yield_t & yield, RegAS index);
 bool containsvalue( MPCTIO &tio, yield_t & yield);
-
+size_t sizefunc(MPCTIO &tio, yield_t & yield);
+RegAS getleftindice(MPCTIO &tio, yield_t & yield, RegAS indice);
+RegAS getrightindice(MPCTIO &tio, yield_t & yield, RegAS indice);
 
     void test(MPCTIO &tio, yield_t & yield) ;
     // Intializes the heap array with 0x7fffffffffffffff

@@ -699,6 +699,8 @@ RegAS MinHeap::extract_min(MPCTIO &tio, yield_t & yield, int is_optimized) {
     return minval;
 }
 
+
+
 bool MinHeap::containsvalue( MPCTIO &tio, yield_t & yield) {
     if(num_items > 0)
         return true;
@@ -712,6 +714,28 @@ void MinHeap::changevalF(MPCTIO &tio, yield_t & yield, RegAS index) {
     tofalse.set(0);
     HeapArray[index] = tofalse;
 }
+
+size_t MinHeap::sizefunc(MPCTIO &tio, yield_t & yield) {
+    auto HeapArray = oram.flat(tio, yield);
+    return HeapArray.size();
+}
+
+RegAS MinHeap::getleftindice(MPCTIO &tio, yield_t & yield, RegAS indice) {
+    auto HeapArray = oram.flat(tio, yield);
+    uint64_t index= mpc_reconstruct(tio, yield, indice);
+   // RegAS parent = HeapArray[index];
+    RegAS leftchild = HeapArray[2 * index];
+    return leftchild;
+}
+
+RegAS MinHeap::getrightindice(MPCTIO &tio, yield_t & yield, RegAS indice) {
+    auto HeapArray = oram.flat(tio, yield);
+    uint64_t index= mpc_reconstruct(tio, yield, indice);
+    //RegAS parent = HeapArray[index];
+    RegAS rightchild = HeapArray[2 * index +1];
+    return rightchild;
+}
+
 
 
 void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
@@ -783,7 +807,12 @@ void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
                 // getting the value out
                 RegAS toextract = tree.extract_min(tio, yield, is_optimized);
                 tree_bool.changevalF(tio, yield, toextract);
-                
+                RegAS left = tree.getleftindice(tio, yield, toextract);
+                RegAS right = tree.getrightindice(tio, yield, toextract);
+                if (tree.sizefunc(tio, yield) >1)
+                    cache.insert(tio, yield, left);
+                if (tree.sizefunc(tio, yield) >2)
+                    cache.insert(tio, yield, right);
             }
             RegAS minval = tree.extract_min(tio, yield, is_optimized);
             uint64_t minval_reconstruction = mpc_reconstruct(tio, yield, minval);

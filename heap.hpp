@@ -42,6 +42,7 @@ public:
     // and takes in a boolean parameter to decide if the basic or the optimized version needs to be run
     // return value is the share of the minimum value (the root)
     RegAS extract_min(MPCTIO &tio, yield_t & yield, int is_optimized = 1);
+    RegAS extract_min2(MPCTIO &tio, yield_t & yield, int is_optimized = 1);
     
 void changevalF(MPCTIO &tio, yield_t & yield, RegAS index);
 bool containsvalue( MPCTIO &tio, yield_t & yield);

@@ -216,38 +216,7 @@ auto MinHeap::getoramflat(MPCTIO &tio, yield_t &yield, MinHeap & obj)
     return obj.oram.flat(tio, yield);  // Now `oram` is accessible
 }
 
-void MinHeap::insertwithreferencetooriginal(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap & obj) {
 
-    auto HeapArray = oram.flat(tio, yield);
-    auto something = getoramflat(tio, yield, obj);
-    
-   // auto HeapArraytree = obj.oram.flat(tio,yield);
-    obj.num_items++;
-    size_t childindex = num_items;
-    size_t parentindex = childindex / 2;
-
-    #ifdef HEAP_VERBOSE
-    std::cout << "childindex = " << childindex << std::endl;
-    std::cout << "parentindex = " << parentindex << std::endl;
-    #endif
-
-    something[obj.num_items] = val;
-
-    while (parentindex > 0) {
-        RegAS sharechild = HeapArray[childindex];
-        RegAS shareparent = HeapArray[parentindex];
-        RegAS sharechildfromsecond = something[childindex];
-        RegAS shareparentfromsecond = something[parentindex];
-        CDPF cdpf = tio.cdpf(yield);
-        RegAS diff = sharechild - shareparent;
-        auto[lt, eq, gt] = cdpf.compare(tio, yield, diff, tio.aes_ops());
-        mpc_oswap(tio, yield, sharechildfromsecond, shareparentfromsecond, lt);
-        something[childindex]  = sharechildfromsecond;
-        something[parentindex] = shareparentfromsecond;
-        childindex = parentindex;
-        parentindex = parentindex / 2;
-    }
-}
 
     
 // Note: This function is intended for testing purposes only.
@@ -533,6 +502,7 @@ void MinHeap::init(MPCTIO &tio, yield_t & yield) {
 }
 
 
+
 // This function simply inits a heap with values 100,200,...,100*n
 // We use this function only to set up our heap
 // to do timing experiments on insert and extractmins
@@ -750,6 +720,40 @@ RegAS MinHeap::extract_min(MPCTIO &tio, yield_t & yield, int is_optimized) {
 }
 
 
+void MinHeap::insertwithreferencetooriginal(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap & obj) {
+
+    auto HeapArray = oram.flat(tio, yield);
+    auto something = getoramflat(tio, yield, obj);
+    
+   // auto HeapArraytree = obj.oram.flat(tio,yield);
+    num_items++;
+    size_t childindex = num_items;
+    size_t parentindex = childindex / 2;
+
+    #ifdef HEAP_VERBOSE
+    std::cout << "childindex = " << childindex << std::endl;
+    std::cout << "parentindex = " << parentindex << std::endl;
+    #endif
+
+    HeapArray[num_items] = val;
+    std::cout<<num_items;
+    //while (parentindex > 0) {
+        RegAS sharechild = HeapArray[childindex];
+        RegAS shareparent = HeapArray[parentindex];
+        restore_heap_property_at_explicit_index(tio, yield);
+        // RegAS sharechildOriginal = something[childindex];
+        // RegAS shareparentOriginal = something[parentindex];
+        // CDPF cdpf = tio.cdpf(yield);
+        // RegAS diff = sharechild - shareparent;
+        // auto[lt, eq, gt] = cdpf.compare(tio, yield, diff, tio.aes_ops());
+        // mpc_oswap(tio, yield, sharechildfromsecond, shareparentfromsecond, lt);
+        // something[childindex]  = sharechildfromsecond;
+        // something[parentindex] = shareparentfromsecond;
+        // childindex = parentindex;
+        // parentindex = parentindex / 2;
+    //}
+}
+
 RegAS MinHeap::extract_min_updated(MPCTIO &tio, yield_t & yield) {
     auto HeapArray = oram.flat(tio, yield);
     return HeapArray[1];
@@ -883,17 +887,18 @@ void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
             
             if(cache.numitems(tio, yield, 0) == false) {
                 std::cout<<"Print this";
-                RegAS minval = tree.extract_min_updated(tio, yield);
+               // RegAS minval = tree.extract_min_updated(tio, yield);
                 treeboolean.convertbool(tio, yield, 1);
 
-                if(tree.numitems(tio, yield, 1)){
-                    RegAS val;
-                    val.set(1);
-                    cache.insertwithreferencetooriginal(tio, yield, val, tree);
-                }
+                
                 if(tree.numitems(tio, yield, 2)){
                     RegAS val;
                     val.set(2);
+                    cache.insertwithreferencetooriginal(tio, yield, val, tree);
+                }
+                if(tree.numitems(tio, yield, 1)){
+                    RegAS val;
+                    val.set(1);
                     cache.insertwithreferencetooriginal(tio, yield, val, tree);
                 }
                 //calc left and right index
@@ -904,6 +909,7 @@ void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
             RegAS minval = tree.extract_min(tio, yield, is_optimized);
             uint64_t minval_reconstruction = mpc_reconstruct(tio, yield, minval);
             std::cout << "minval_reconstruction = " << minval_reconstruction << std::endl;
+            cache.print_heap(tio, yield);
             #ifdef HEAP_VERBOSE
             tree.print_heap(tio, yield);
             #endif

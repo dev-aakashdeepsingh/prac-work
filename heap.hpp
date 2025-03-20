@@ -19,6 +19,7 @@ private:
     // the heap property has to be restored
     // Returns the XOR shares of the index of the smaller child
     RegXS restore_heap_property(MPCTIO &tio, yield_t & yield, RegXS index);
+    RegXS restore_heap_property2(MPCTIO &tio, yield_t & yield, RegXS index, MinHeap & obj);
 
     // Optimized restore heap property at a secret shared index
     // Takes in as an input the XOR shares of the index at which

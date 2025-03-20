@@ -719,28 +719,127 @@ RegAS MinHeap::extract_min(MPCTIO &tio, yield_t & yield, int is_optimized) {
     return minval;
 }
 
+RegXS MinHeap::restore_heap_property2(MPCTIO &tio, yield_t & yield, RegXS index, MinHeap & obj) {
+    RegAS smallest;
+    auto HeapArray = oram.flat(tio, yield);
+    auto HeapArraysecond = getoramflat(tio, yield, obj);
+   
+
+    
+    RegXS leftchildindex = index;
+    leftchildindex = index << 1;
+    RegXS rightchildindex;
+    rightchildindex.xshare = leftchildindex.xshare ^ (!tio.player());
+
+    RegAS parent, leftchild, rightchild;
+
+    #ifdef HEAP_VERBOSE
+    auto index_reconstruction = mpc_reconstruct(tio, yield, index);
+    auto leftchildindex_reconstruction = mpc_reconstruct(tio, yield, leftchildindex);
+    auto rightchildindex_reconstruction = mpc_reconstruct(tio, yield, rightchildindex);
+    std::cout << "index_reconstruction               =  " << index_reconstruction << std::endl;
+    std::cout << "leftchildindex_reconstruction      =  " << leftchildindex_reconstruction << std::endl;
+    std::cout << "rightchildindex_reconstruction     =  " << rightchildindex_reconstruction << std::endl;
+    #endif
+
+   run_coroutines(tio, [&tio, &parent, &HeapArray, &HeapArraysecond, index](yield_t &yield) {
+                  auto Acoro = HeapArray.context(yield);
+                  auto Acoro2 = HeapArraysecond.context(yield);
+                  parent = Acoro2[Acoro[index]];},
+                  [&tio, &HeapArray, &HeapArraysecond, &leftchild, leftchildindex](yield_t &yield) {
+                  auto Acoro = HeapArray.context(yield);
+                  auto Acoro2 = HeapArraysecond.context(yield);
+                  leftchild  = Acoro2[Acoro[leftchildindex]];},
+                  [&tio, &rightchild, &HeapArray, &HeapArraysecond, rightchildindex](yield_t &yield) {
+                  auto Acoro = HeapArray.context(yield);
+                  auto Acoro2 = HeapArraysecond.context(yield);
+                  rightchild = Acoro2[Acoro[rightchildindex]];});
+
+    CDPF cdpf = tio.cdpf(yield);
+    auto[lt_c, eq_c, gt_c] = cdpf.compare(tio, yield, leftchild - rightchild, tio.aes_ops());
+
+    RegXS smallerindex;
+    RegAS smallerchild;
+
+    run_coroutines(tio, [&tio, &smallerindex, lt_c, rightchildindex, leftchildindex](yield_t &yield) {
+        mpc_select(tio, yield, smallerindex, lt_c, rightchildindex, leftchildindex);
+    },  [&tio, &smallerchild, lt_c, rightchild, leftchild](yield_t &yield) {
+        mpc_select(tio, yield, smallerchild, lt_c, rightchild, leftchild);
+    }
+    );
+
+    CDPF cdpf0 = tio.cdpf(yield);
+    auto[lt_p, eq_p, gt_p] = cdpf0.compare(tio, yield, smallerchild - parent, tio.aes_ops());
+
+    RegBS ltlt1;
+
+    mpc_and(tio, yield, ltlt1, lt_c, lt_p);
+
+    RegAS update_index_by, update_leftindex_by;
+
+    run_coroutines(tio, [&tio, &update_leftindex_by, ltlt1, parent, leftchild](yield_t &yield) {
+        mpc_flagmult(tio, yield, update_leftindex_by, ltlt1, parent - leftchild);
+    },  [&tio, &update_index_by, lt_p, parent, smallerchild](yield_t &yield) {
+        mpc_flagmult(tio, yield, update_index_by, lt_p, smallerchild - parent);
+    }
+    );
+
+
+    run_coroutines(tio, [&tio, &HeapArray, &HeapArraysecond, index, update_index_by](yield_t &yield) {
+                   auto Acoro = HeapArray.context(yield);
+                   auto Acoro2 = HeapArraysecond.context(yield);
+                   Acoro2[Acoro[index]] += update_index_by;},
+                   [&tio, &HeapArray, &HeapArraysecond, leftchildindex, update_leftindex_by](yield_t &yield) {
+                   auto Acoro = HeapArray.context(yield);
+                   auto Acoro2 = HeapArraysecond.context(yield);
+                   Acoro2[Acoro[leftchildindex]] += update_leftindex_by;},
+                   [&tio, &HeapArray, &HeapArraysecond, rightchildindex, update_index_by, update_leftindex_by](yield_t &yield) {
+                   auto Acoro = HeapArray.context(yield);
+                   auto Acoro2 = HeapArraysecond.context(yield);
+                   Acoro2[Acoro[rightchildindex]] += -(update_index_by + update_leftindex_by);});
+
+    #ifdef HEAP_DEBUG
+            verify_parent_children_heaps(tio, yield, HeapArray[index], HeapArray[leftchildindex] , HeapArray[rightchildindex]);
+    #endif
+
+    return smallerindex;
+}
+
 
 void MinHeap::insertwithreferencetooriginal(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap & obj) {
 
-    auto HeapArray = oram.flat(tio, yield);
-    auto something = getoramflat(tio, yield, obj);
+    auto HeapArray = oram.flat(tio, yield); // cache
+    auto HeapArraySecondary = getoramflat(tio, yield, obj); // original
     
    // auto HeapArraytree = obj.oram.flat(tio,yield);
-    num_items++;
+    num_items++;   
+    // current object called is cache, increasing its items by one.
+
     size_t childindex = num_items;
     size_t parentindex = childindex / 2;
+    // for heapification along path
 
     #ifdef HEAP_VERBOSE
     std::cout << "childindex = " << childindex << std::endl;
     std::cout << "parentindex = " << parentindex << std::endl;
     #endif
 
-    HeapArray[num_items] = val;
-    std::cout<<num_items;
+    HeapArray[num_items] = val<<1;
+    // inserting the val at the last index
+
+    if(num_items == 1)
+        return;
+    else{
+        RegXS index;
+        index.set(num_items);
+        // heapification if there are more than 2 values in the heap ...
+        // lets stop here for now...
+        
+        //cache.restore_heap_property2(tio, yield, index, obj);
+    }
+
+    //std::cout<<num_items;
     //while (parentindex > 0) {
-        RegAS sharechild = HeapArray[childindex];
-        RegAS shareparent = HeapArray[parentindex];
-        restore_heap_property_at_explicit_index(tio, yield);
         // RegAS sharechildOriginal = something[childindex];
         // RegAS shareparentOriginal = something[parentindex];
         // CDPF cdpf = tio.cdpf(yield);
@@ -768,6 +867,7 @@ void MinHeap::convertbool(MPCTIO &tio, yield_t & yield, size_t index){
 
 bool MinHeap::numitems(MPCTIO &tio, yield_t & yield, size_t num) {
     bool temp = false;
+    std::cout<<num_items<<std::endl;
     if(num_items > num)
         temp = true;
     return temp;
@@ -886,7 +986,7 @@ void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
             // }
             
             if(cache.numitems(tio, yield, 0) == false) {
-                std::cout<<"Print this";
+                std::cout<<"Print this \n";
                // RegAS minval = tree.extract_min_updated(tio, yield);
                 treeboolean.convertbool(tio, yield, 1);
 
@@ -901,6 +1001,11 @@ void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
                     val.set(1);
                     cache.insertwithreferencetooriginal(tio, yield, val, tree);
                 }
+                RegAS val;
+                val.set(7);
+                cache.insertwithreferencetooriginal(tio, yield, val, tree);
+                val.set(1);
+                cache.insertwithreferencetooriginal(tio, yield, val, tree);
                 //calc left and right index
                 //RegAS leftchild = HeapArray[2 * index];
                // RegAS rightchild = HeapArray[2 * index + 1];

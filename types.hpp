@@ -106,6 +106,7 @@ struct RegAS {
         return *this;
     }
 
+
     inline RegAS operator<<(nbits_t shift) const {
         RegAS res = *this;
         res <<= shift;

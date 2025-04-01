@@ -19,8 +19,8 @@ private:
     // the heap property has to be restored
     // Returns the XOR shares of the index of the smaller child
     RegXS restore_heap_property(MPCTIO &tio, yield_t & yield, RegXS index);
-    RegXS restore_heap_property2(MPCTIO &tio, yield_t & yield, RegXS index, MinHeap & obj);
-
+    void restore_heap_property2(MPCTIO &tio, yield_t & yield, size_t index, MinHeap & obj);
+    
     // Optimized restore heap property at a secret shared index
     // Takes in as an input the XOR shares of the index at which
     // the heap property has to be restored
@@ -36,6 +36,9 @@ private:
     std::pair<RegXS, RegBS> restore_heap_property_at_explicit_index(MPCTIO &tio, yield_t & yield,  size_t index);
 
 public:
+    void heapify_top_down(MPCTIO &tio, yield_t &yield);
+    std::pair<RegXS, RegBS> heapify_top_down(MPCTIO &tio, yield_t & yield, RegXS index);
+    void test(MPCTIO &tio, yield_t &yield);
     MinHeap(int player_num, size_t size) : oram(player_num, size) {};
 
     // The extractmin protocol returns the minimum element (the root), removes it

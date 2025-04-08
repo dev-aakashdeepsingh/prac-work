@@ -19,7 +19,7 @@ private:
     // the heap property has to be restored
     // Returns the XOR shares of the index of the smaller child
     RegXS restore_heap_property(MPCTIO &tio, yield_t & yield, RegXS index);
-    void restore_heap_property2(MPCTIO &tio, yield_t & yield, size_t index, MinHeap & obj);
+    void restore_heap_property_multi(MPCTIO &tio, yield_t & yield, size_t index, MinHeap & obj);
     
     // Optimized restore heap property at a secret shared index
     // Takes in as an input the XOR shares of the index at which
@@ -36,22 +36,26 @@ private:
     std::pair<RegXS, RegBS> restore_heap_property_at_explicit_index(MPCTIO &tio, yield_t & yield,  size_t index);
 
 public:
-    void heapify_top_down(MPCTIO &tio, yield_t &yield);
+    void HeapifyMulti(MPCTIO &tio, yield_t &yield, size_t index, MinHeap& obj);
+    void insert(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap &obj, MinHeap &obj2);
+    void insert(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap &obj);
     std::pair<RegXS, RegBS> heapify_top_down(MPCTIO &tio, yield_t & yield, RegXS index);
     void test(MPCTIO &tio, yield_t &yield);
     MinHeap(int player_num, size_t size) : oram(player_num, size) {};
-
+    RegAS extract_min_multi(MPCTIO &tio, yield_t & yield,  MinHeap &obj);
+    RegAS extract_value(MPCTIO &tio, yield_t & yield, RegAS index, MinHeap& obj);
     // The extractmin protocol returns the minimum element (the root), removes it
     // and restores the heap property
     // and takes in a boolean parameter to decide if the basic or the optimized version needs to be run
     // return value is the share of the minimum value (the root)
     RegAS extract_min(MPCTIO &tio, yield_t & yield, int is_optimized = 1);
-    RegAS extract_min_updated(MPCTIO &tio, yield_t & yield);
+    RegAS extract_root(MPCTIO &tio, yield_t & yield);
     bool numitems(MPCTIO &tio, yield_t & yield, size_t num);
     void convertbool(MPCTIO &tio, yield_t & yield, size_t index);
-    void insertwithreferencetooriginal(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap & obj);
+    void convertbool(MPCTIO &tio, yield_t & yield, RegAS index);
+    void insert_multi(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap & obj);
     auto getoramflat(MPCTIO &tio, yield_t &yield, MinHeap & obj) 
-        -> decltype(oram.flat(tio, yield));
+    -> decltype(oram.flat(tio, yield));
     // Intializes the heap array with 0x7fffffffffffffff
     void init(MPCTIO &tio, yield_t & yield);
 

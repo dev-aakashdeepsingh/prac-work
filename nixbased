@@ -5,6 +5,6 @@ nix-shell -p gcc gnumake patch automake libtool nettools iproute2 iperf iputils 
 CXXFLAGS=-march=native -std=c++17 -Wall -Wno-ignored-attributes -ggdb -O3 -maes -msse4.1
 
 
-./prac -o -t 8 0 heap -m 8 -d 7 -i 10 -e 5 -opt 0 -s 1 -exp 1
-./prac -o -t 8 1 localhost heap -m 8 -d 7 -i 10 -e 5 -opt 0 -s 1 -exp 1
-./prac -o -t 8 2 localhost localhost heap -m 8 -d 7 -i 10 -e 5 -opt 0 -s 1 -exp 1
+./prac -o -t 8 0 heap -m 8 -d 7 -i 0 -e 5 -opt 0 -s 1 -exp 1
+./prac -o -t 8 1 localhost heap -m 8 -d 7 -i 0 -e 5 -opt 0 -s 1 -exp 1
+./prac -o -t 8 2 localhost localhost heap -m 8 -d 7 -i 0 -e 5 -opt 0 -s 1 -exp 1

@@ -751,7 +751,7 @@ void MinHeap::restore_heap_property_cache(MPCTIO &tio, yield_t & yield, MinHeap 
     auto HeapArraysecond = getoramflat(tio, yield, obj);
     auto HeapArray = oram.flat(tio, yield);
 
-    RegAS ind_main_heap = HeapArray[index]; 
+    RegAS ind_main_heap = HeapArray[num_items]; 
     // Cache Heap, we are getting the index of the main heap
     RegAS val_main_heap = HeapArraysecond[ind_main_heap]; 
     // DORAM read to get the value of the main heap
@@ -975,7 +975,7 @@ RegAS MinHeap::extract_min_multi(MPCTIO &tio, yield_t & yield, MinHeap &obj) {
         return minval;
     }
     else{       
-        this->restore_heap_property_multi(tio, yield, obj);
+        this->restore_heap_property_cache(tio, yield, obj);
     }
     return minval;
 }

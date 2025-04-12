@@ -19,7 +19,7 @@ private:
     // the heap property has to be restored
     // Returns the XOR shares of the index of the smaller child
     RegXS restore_heap_property(MPCTIO &tio, yield_t & yield, RegXS index);
-    void restore_heap_property_multi(MPCTIO &tio, yield_t & yield, size_t index, MinHeap & obj);
+    void restore_heap_property_cache(MPCTIO &tio, yield_t & yield, MinHeap & obj);
     
     // Optimized restore heap property at a secret shared index
     // Takes in as an input the XOR shares of the index at which
@@ -36,6 +36,8 @@ private:
     std::pair<RegXS, RegBS> restore_heap_property_at_explicit_index(MPCTIO &tio, yield_t & yield,  size_t index);
 
 public:
+    void insertval_m(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap & obj, MinHeap & obj2);
+    void insertbool_m(MPCTIO &tio, yield_t & yield);
     void HeapifyMulti(MPCTIO &tio, yield_t &yield, size_t index, MinHeap& obj);
     void insert(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap &obj, MinHeap &obj2);
     void insert(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap &obj);
@@ -53,7 +55,7 @@ public:
     bool numitems(MPCTIO &tio, yield_t & yield, size_t num);
     void convertbool(MPCTIO &tio, yield_t & yield, size_t index);
     void convertbool(MPCTIO &tio, yield_t & yield, RegAS index);
-    void insert_multi(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap & obj);
+    void insertval_c(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap & obj);
     auto getoramflat(MPCTIO &tio, yield_t &yield, MinHeap & obj) 
     -> decltype(oram.flat(tio, yield));
     // Intializes the heap array with 0x7fffffffffffffff

@@ -8,3 +8,41 @@ CXXFLAGS=-march=native -std=c++17 -Wall -Wno-ignored-attributes -ggdb -O3 -maes 
 ./prac -o -t 8 0 heap -m 8 -d 7 -i 0 -e 5 -opt 0 -s 1 -exp 1
 ./prac -o -t 8 1 localhost heap -m 8 -d 7 -i 0 -e 5 -opt 0 -s 1 -exp 1
 ./prac -o -t 8 2 localhost localhost heap -m 8 -d 7 -i 0 -e 5 -opt 0 -s 1 -exp 1
+
+
+// void MinHeap::insert(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap &obj, MinHeap &obj2) {
+
+//     auto HeapArray = oram.flat(tio, yield); //tree
+//     auto HeapArray2 = this->getoramflat(tio, yield, obj); //treeboolean
+//     auto HeapArray3 = this->getoramflat(tio, yield, obj2); //cache
+
+//     num_items++;
+
+//     HeapArray[num_items] = val;
+//     RegAS value;
+//     value.set(1);
+//     HeapArray2[num_items] = value;
+
+//     size_t childindex = num_items;
+//     size_t parentindex = childindex / 2;
+
+//     #ifdef HEAP_VERBOSE
+//     std::cout << "childindex = " << childindex << std::endl;
+//     std::cout << "parentindex = " << parentindex << std::endl;
+//     #endif
+
+//     HeapArray[num_items] = val;
+
+//     while (parentindex > 0) {
+//         RegAS sharechild = HeapArray[childindex];
+//         RegAS shareparent = HeapArray[parentindex];
+//         CDPF cdpf = tio.cdpf(yield);
+//         RegAS diff = sharechild - shareparent;
+//         auto[lt, eq, gt] = cdpf.compare(tio, yield, diff, tio.aes_ops());
+//         mpc_oswap(tio, yield, sharechild, shareparent, lt);
+//         HeapArray[childindex]  = sharechild;
+//         HeapArray[parentindex] = shareparent;
+//         childindex = parentindex;
+//         parentindex = parentindex / 2;
+//     }
+// }

@@ -782,7 +782,7 @@ Duoram Tree is passed (for heapification in cache heap happens w.r.t tree heap)
 */
 void MinHeap::_insertclr(MPCTIO &tio, yield_t & yield, RegAS index, MinHeap &obj) {
     // auto HeapArray = oram.flat(tio, yield);
-    // auto HeapArray2 = this->getoramflat(tio, yield, obj); //tree
+    // auto HeapArray2 = getoramflat(tio, yield, obj); //tree
 
     //left child and right child index calculation
     RegAS left_child = index<<1;
@@ -826,18 +826,18 @@ insertval_m function takes in value in the form of RegAS shares and objects of c
 2) Changing the values of boolean counterparts as true. 
 3)
 */ 
-void MinHeap::_insertval_m(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap & obj, MinHeap & obj2) {
+void MinHeap::_insertval_m(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap &obj, MinHeap &obj2) {
     
     //insert the value into the original heap.
     auto HeapArray = oram.flat(tio, yield);
-    // auto HeapArray_c = this->getoramflat(tio, yield, obj); //cache
-    auto HeapArray_b = this->getoramflat(tio, yield, obj2); //boolean
+    auto HeapArray_b = getoramflat(tio, yield, obj); //boolean
+    //auto HeapArray_c = getoramflat(tio, yield, obj2); //cache
     
     num_items++;
     HeapArray[num_items] = val;
 
     //change the boolean counterpart at same index.
-    obj2._convert_bool_new(tio, yield, obj2);
+    _convert_bool_new(tio, yield, obj);
 
     //heapify along the path in original heap where* boolean values are all true.
     size_t childindex = num_items;
@@ -853,7 +853,10 @@ void MinHeap::_insertval_m(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap & ob
         RegAS shareparent = HeapArray[parentindex];
         RegAS sharebooleanparent = HeapArray_b[parentindex];
         RegAS tempboolean ;
-        tempboolean.set(1);
+        if(tio.player() == 0)
+            tempboolean.ashare= 1;
+        else    
+            tempboolean.ashare= 0;
         CDPF cdpf = tio.cdpf(yield);
         RegAS diff = sharechild - shareparent;
         RegAS booleandiff = sharebooleanparent - tempboolean;
@@ -883,7 +886,7 @@ func() : takes arguments RegAS index and duoram
 Returns RegAS value shares stored at tree duoram at index provided as argument
 */
 RegAS MinHeap::_extract_value(MPCTIO &tio, yield_t & yield, RegAS index, MinHeap& obj) {
-    auto HeapArray = this->getoramflat(tio, yield, obj);
+    auto HeapArray = getoramflat(tio, yield, obj);
     RegAS value;
     value = HeapArray[index];
     return value;
@@ -912,14 +915,17 @@ void MinHeap::_convert_bool(MPCTIO &tio, yield_t & yield, RegAS index){
 }
 
 /*
-func() : takes argument as boolean duoram
+func() 
 sets boolean heap entry to 1 at num_items +1 (new index)
 */
 void MinHeap::_convert_bool_new(MPCTIO &tio, yield_t & yield, MinHeap& obj){
-    auto HeapArray = oram.flat(tio, yield);
-    num_items++;
+    auto HeapArray = getoramflat(tio, yield, obj);
+    obj.num_items++;
     RegAS temp;
-    temp.set(1);
+    if(tio.player() == 0)
+        temp.ashare= 1;
+    else    
+        temp.ashare= 0;
     HeapArray[num_items] = temp;
 }
 
@@ -1030,6 +1036,8 @@ void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
             tio.sync_lamport();
             mpcio.dump_stats(std::cout);
 
+            //tree.print_heap(tio, yield);
+            //treeboolean.print_heap(tio, yield);
             if(run_sanity == 1 && n_inserts != 0) tree.verify_heap_property(tio, yield);
 
             mpcio.reset_stats();

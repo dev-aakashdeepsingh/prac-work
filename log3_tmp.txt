@@ -1,0 +1,85 @@
+
+===== Init Stats =====
+0 messages sent
+0 message bytes sent
+0 Lamport clock (latencies)
+0 local AES operations
+0 milliseconds wall clock time
+{0;0;0} nanoseconds {real;user;system}
+Mem: 5120 KiB
+
+===== Insert Stats =====
+1600 messages sent
+793600 message bytes sent
+2050 Lamport clock (latencies)
+91200 local AES operations
+32915 milliseconds wall clock time
+{32910000000;40000000;80000000} nanoseconds {real;user;system}
+Mem: 5248 KiB
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+minval_reconstruction = 0
+
+===== Extract Min Stats =====
+5314 messages sent
+6398236 message bytes sent
+18398 Lamport clock (latencies)
+8817600 local AES operations
+52253 milliseconds wall clock time
+{52260000000;2010000000;2610000000} nanoseconds {real;user;system}
+Mem: 6708 KiB
+5314 messages sent
+6398236 message bytes sent
+18398 Lamport clock (latencies)
+8817600 local AES operations
+52253 milliseconds wall clock time
+{52260000000;2010000000;2610000000} nanoseconds {real;user;system}
+Mem: 6708 KiB
+Precomputed values used: T0 r10:2100

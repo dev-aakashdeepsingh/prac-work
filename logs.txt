@@ -1,0 +1,5 @@
+===== Log from Node 0 =====
+
+===== Log from Node 1 =====
+
+===== Log from Node 2 =====

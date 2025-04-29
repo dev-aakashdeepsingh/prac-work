@@ -1007,8 +1007,9 @@ void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
             MinHeap treeboolean(tio.player(), size);
             MinHeap cache(tio.player(), size);
 
-            // for testing purposes :: extracted values
-            // std::vector<uint64_t> extracted;
+            //for testing purposes
+            std::vector<uint64_t> extracted;
+            
             tree.init(tio, yield, (size_t(1) << heapdepth) - 1);
             treeboolean._initforbool(tio, yield, (size_t(1) << heapdepth) - 1);
             cache.init(tio, yield);
@@ -1052,11 +1053,13 @@ void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
                 if(cache._numitems(tio, yield, 0) == false) {
                     // if the cache is empty
                     // RegAS minval = tree._extract_root(tio, yield);
-                    tree._extract_root(tio, yield);
+                    RegAS minval = tree._extract_root(tio, yield);
                     treeboolean._convert_bool(tio, yield, 1);
                     // for testing purposes
-                    // uint64_t minval_reconstruction = mpc_reconstruct(tio, yield, minval);
-                    // extracted.push_back(minval_reconstruction);
+                    if(run_sanity == 1){
+                        uint64_t minval_reconstruction = mpc_reconstruct(tio, yield, minval);
+                        extracted.push_back(minval_reconstruction);
+                    }
                     // pushing the children indices to cache heap 
                     if(tree._numitems(tio, yield, 3)){
                         RegAS temp;
@@ -1086,15 +1089,20 @@ void Heap(MPCIO & mpcio,  const PRACOptions & opts, char ** args) {
                     treeboolean._convert_bool(tio, yield, to_extract_index);
                     cache._heapify_cache(tio, yield, 1, tree);
                     cache._insertclr(tio, yield, to_extract_index, tree);
-                    //uint64_t minval_reconstruction = mpc_reconstruct(tio, yield, minval);
-                    //extracted.push_back(minval_reconstruction);
+                    if(run_sanity == 1) {
+                        uint64_t minval_reconstruction = mpc_reconstruct(tio, yield, minval);
+                        extracted.push_back(minval_reconstruction);
+                    }
                 }
             }
             std::cout << "\n===== Extract Min Stats =====\n";
             tio.sync_lamport();
             mpcio.dump_stats(std::cout);
-
-            if(run_sanity == 1 && n_extracts != 0) tree.verify_heap_property(tio, yield);
+            if(run_sanity == 1) {
+                for (auto i: extracted)
+                    std::cout << i << std::endl;
+            }
+            if(run_sanity == 1 && n_extracts != 0)  tree.verify_heap_property(tio, yield);
         }
         else {
             MinHeap tree(tio.player(), size);

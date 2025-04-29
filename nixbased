@@ -5,9 +5,9 @@ nix-shell -p gcc gnumake patch automake libtool nettools iproute2 iperf iputils 
 CXXFLAGS=-march=native -std=c++17 -Wall -Wno-ignored-attributes -ggdb -O3 -maes -msse4.1
 
 
-./prac -o -t 8 0 heap -m 8 -d 7 -i 0 -e 5 -opt 0 -s 1 -exp 1
-./prac -o -t 8 1 localhost heap -m 8 -d 7 -i 0 -e 5 -opt 0 -s 1 -exp 1
-./prac -o -t 8 2 localhost localhost heap -m 8 -d 7 -i 0 -e 5 -opt 0 -s 1 -exp 1
+./prac -o -t 8 0 heap -m 16 -d 16 -i 0 -e 16 -opt 0 -s 1 -exp 0
+./prac -o -t 8 1 localhost heap -m 16 -d 16 -i 0 -e 16 -opt 0 -s 1 -exp 0
+./prac -o -t 8 2 localhost localhost heap -m 16 -d 16 -i 0 -e 16 -opt 0 -s 1 -exp 0
 
 
 // void MinHeap::insert(MPCTIO &tio, yield_t & yield, RegAS val, MinHeap &obj, MinHeap &obj2) {
@@ -46,3 +46,115 @@ CXXFLAGS=-march=native -std=c++17 -Wall -Wno-ignored-attributes -ggdb -O3 -maes 
 //         parentindex = parentindex / 2;
 //     }
 // }
+
+[gauche@nix:~/Documents/prac]$ ./prac -o -t 8 0 heap -m 16 -d 16 -i 0 -e 16 -opt 0 -s 0 -exp 0
+
+===== Init Stats =====
+0 messages sent
+0 message bytes sent
+0 Lamport clock (latencies)
+0 local AES operations
+2 milliseconds wall clock time
+{0;0;0} nanoseconds {real;user;system}
+Mem: 6656 KiB
+
+===== Insert Stats =====
+0 messages sent
+0 message bytes sent
+0 Lamport clock (latencies)
+0 local AES operations
+0 milliseconds wall clock time
+{0;0;0} nanoseconds {real;user;system}
+Mem: 6656 KiB
+
+===== Extract Min Stats =====
+17424 messages sent
+2720336 message bytes sent
+16944 Lamport clock (latencies)
+528528960 local AES operations
+45581 milliseconds wall clock time
+{45580000000;12510000000;6260000000} nanoseconds {real;user;system}
+Mem: 30164 KiB
+17424 messages sent
+2720336 message bytes sent
+16944 Lamport clock (latencies)
+528528960 local AES operations
+45582 milliseconds wall clock time
+{45580000000;12510000000;6260000000} nanoseconds {real;user;system}
+Mem: 30164 KiB
+Precomputed values used: T0 m:720 a:4 s:224 r16:1344 c:480
+
+
+[gauche@nix:~/Documents/prac]$ ./prac -o -t 8 0 heap -m 16 -d 16 -i 0 -e 32 -opt 0 -s 0 -exp 0
+
+===== Init Stats =====
+0 messages sent
+0 message bytes sent
+0 Lamport clock (latencies)
+0 local AES operations
+2 milliseconds wall clock time
+{0;0;0} nanoseconds {real;user;system}
+Mem: 6400 KiB
+
+===== Insert Stats =====
+0 messages sent
+0 message bytes sent
+0 Lamport clock (latencies)
+0 local AES operations
+0 milliseconds wall clock time
+{0;0;0} nanoseconds {real;user;system}
+Mem: 6400 KiB
+
+===== Extract Min Stats =====
+34848 messages sent
+5440672 message bytes sent
+33888 Lamport clock (latencies)
+1057057920 local AES operations
+94096 milliseconds wall clock time
+{94100000000;24590000000;16060000000} nanoseconds {real;user;system}
+Mem: 29380 KiB
+34848 messages sent
+5440672 message bytes sent
+33888 Lamport clock (latencies)
+1057057920 local AES operations
+94096 milliseconds wall clock time
+{94100000000;24590000000;16060000000} nanoseconds {real;user;system}
+Mem: 29380 KiB
+Precomputed values used: T0 m:1440 a:8 s:448 r16:2688 c:960
+
+[gauche@nix:~/Documents/prac]$ ./prac -o -t 8 0 heap -m 16 -d 16 -i 0 -e 64 -opt 0 -s 0 -exp 0
+
+===== Init Stats =====
+0 messages sent
+0 message bytes sent
+0 Lamport clock (latencies)
+0 local AES operations
+1 millisecond wall clock time
+{10000000;0;0} nanoseconds {real;user;system}
+Mem: 6656 KiB
+
+===== Insert Stats =====
+0 messages sent
+0 message bytes sent
+0 Lamport clock (latencies)
+0 local AES operations
+0 milliseconds wall clock time
+{0;0;0} nanoseconds {real;user;system}
+Mem: 6656 KiB
+
+===== Extract Min Stats =====
+69696 messages sent
+10881344 message bytes sent
+67776 Lamport clock (latencies)
+2114115840 local AES operations
+191783 milliseconds wall clock time
+{191780000000;48810000000;38340000000} nanoseconds {real;user;system}
+Mem: 27632 KiB
+69696 messages sent
+10881344 message bytes sent
+67776 Lamport clock (latencies)
+2114115840 local AES operations
+191784 milliseconds wall clock time
+{191780000000;48810000000;38340000000} nanoseconds {real;user;system}
+Mem: 27632 KiB
+Precomputed values used: T0 m:2880 a:15 s:896 r16:5376 c:1920

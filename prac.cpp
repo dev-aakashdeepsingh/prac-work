@@ -1,6 +1,6 @@
 #include <iostream>
 #include <deque>
-
+#define __STDC_VERSION__ 201710L
 #include "mpcio.hpp"
 #include "preproc.hpp"
 #include "online.hpp"
